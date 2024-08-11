@@ -1,9 +1,9 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { UserService } from '../service/user/user.service';
+import { UserService } from '../service/user/service';
 import { CreateUserDto } from '../dto/create-user.dto';
-import { RoleService } from '../service/role/role.service';
+import { RoleService } from '../service/role/service';
 import { IUser } from '../schems/user';
-// import { LoginUserDto } from '../dto/login.dto';
+import { LoginUserDto } from '../dto/login.dto';
 
 @Controller('users')
 export class UserController {
@@ -16,5 +16,10 @@ export class UserController {
   async register(@Body() body: CreateUserDto): Promise<IUser> {
     await this.roleService.findRoleByName(body.role);
     return await this.userService.createUser(body);
+  }
+
+  @Post('/signin')
+  async signin(@Body() body: LoginUserDto): Promise<IUser> {
+    return await this.userService.signin(body);
   }
 }

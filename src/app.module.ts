@@ -6,7 +6,7 @@ import { AppService } from './app.service';
 import { Connection } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
 import { UsersModule } from './modules/users/users.module';
-import { RoleService } from './modules/users/service/role/role.service';
+import { RoleService } from './modules/users/service/role/service';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
