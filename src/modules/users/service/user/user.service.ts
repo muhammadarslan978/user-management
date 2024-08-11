@@ -1,29 +1,48 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { CreateUserDto } from '../../dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from '../../schems/user';
+import { IUser } from '../../schems/user';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel('UserModel') private userModel: Model<IUser>,
     private eventEmitter: EventEmitter2,
   ) {}
 
-  async craeteUser(data: any): Promise<any> {
+  async createUser(data: CreateUserDto): Promise<IUser> {
     try {
-      const hashPassword = await this.eventEmitter.emitAsync(
+      console.log('Creating user with data:', data);
+
+      let user = await this.userModel.findOne({ email: data.email });
+      if (user) {
+        throw new HttpException(
+          'User already exists with this email',
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      const [hashPassword] = await this.eventEmitter.emitAsync(
         'utils.hashPassword',
         {
-          password: 'user123',
+          password: data.password,
         },
       );
-      return hashPassword;
+      data.password = hashPassword;
+
+      user = await this.userModel.create(data);
+      console.log('User created:', user);
+
+      return user;
     } catch (err) {
-      throw new Error(err);
+      console.error('Error in createUser:', err);
+      throw new HttpException(
+        err.message || 'Internal Server Error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

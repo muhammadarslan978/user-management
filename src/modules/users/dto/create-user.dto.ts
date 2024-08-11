@@ -11,34 +11,34 @@ import {
 
 export class CreateUserDto {
   @IsEmail()
-  readonly email: string;
+  email: string;
 
   @IsString()
   @MinLength(6)
-  readonly password: string;
+  password: string;
 
   @IsString()
-  readonly first_name: string;
+  first_name: string;
 
   @IsString()
-  readonly last_name: string;
+  last_name: string;
 
   @IsEnum(['User', 'Trainer', 'Coach', 'Admin'])
-  readonly role: 'User' | 'Trainer' | 'Coach' | 'Admin';
+  role: 'User' | 'Trainer' | 'Coach' | 'Admin';
 
   @IsOptional()
   @IsNumber()
-  readonly age?: number;
+  age?: number;
 
   @IsOptional()
   @IsEnum(['Male', 'Female', 'Other'])
-  readonly gender?: 'Male' | 'Female' | 'Other';
+  gender?: 'Male' | 'Female' | 'Other';
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  readonly fitness_goals?: string[];
+  fitness_goals?: string[];
 
   @IsOptional()
-  readonly preferences?: any;
+  preferences?: any;
 }

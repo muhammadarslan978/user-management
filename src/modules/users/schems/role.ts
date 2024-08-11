@@ -1,7 +1,7 @@
 import { Document } from 'mongoose';
 import mongoose, { Schema, model } from 'mongoose';
 
-export interface Role extends Document {
+interface IRole extends Document {
   role_id: string;
   role_name: string;
   permissions?: string[];
@@ -24,5 +24,5 @@ const RoleSchema = new Schema({
   },
 });
 
-export const Role = model<Role>('Role', RoleSchema);
-export { RoleSchema };
+const Role = model<IRole>('Role', RoleSchema);
+export { RoleSchema, Role, IRole };

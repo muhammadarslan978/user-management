@@ -2,9 +2,10 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { UserService } from '../service/user/user.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { RoleService } from '../service/role/role.service';
-import { LoginUserDto } from '../dto/login.dto';
+import { IUser } from '../schems/user';
+// import { LoginUserDto } from '../dto/login.dto';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
   constructor(
     private readonly userService: UserService,
@@ -12,11 +13,8 @@ export class UserController {
   ) {}
 
   @Post('register')
-  async register(@Body() body: any): Promise<any> {
-    const user = await this.userService.craeteUser(body);
-    return user;
+  async register(@Body() body: CreateUserDto): Promise<IUser> {
+    await this.roleService.findRoleByName(body.role);
+    return await this.userService.createUser(body);
   }
-
-  @Post('login')
-  async login(@Body() body: LoginUserDto): Promise<any> {}
 }
