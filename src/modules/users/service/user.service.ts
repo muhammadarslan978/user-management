@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateUserDto } from '../../dto/create-user.dto';
-import { LoginUserDto } from '../../dto/login.dto';
-import { IUser } from '../../schems/user';
-import { UserRepository } from './repo';
+import { CreateUserDto } from '../dto/create-user.dto';
+import { LoginUserDto } from '../dto/login.dto';
+import { IUser } from '../../schema/user.schema';
+import { UserRepository } from './user.repository';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()

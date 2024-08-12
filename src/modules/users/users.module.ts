@@ -1,24 +1,16 @@
 import { Module } from '@nestjs/common';
 
-import { UserService } from './service/user/service';
+import { UserService } from './service/user.service';
 import { UserController } from './controller/user.controller';
-import { RoleService } from './service/role/service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UtilsService } from './service/utils/utils.service';
-import forFeatureDb from './schems/feature.db';
-import { UserRepository } from './service/user/repo';
-import { RoleRepository } from './service/role/repo';
+import forFeatureDb from '../schema/featureDb';
+import { UserRepository } from './service/user.repository';
+import { RolesModule } from '../roles/roles.module';
 
 @Module({
-  imports: [MongooseModule.forFeature(forFeatureDb)],
-  providers: [
-    UserService,
-    RoleService,
-    UtilsService,
-    UserRepository,
-    RoleRepository,
-  ],
+  imports: [MongooseModule.forFeature(forFeatureDb), RolesModule],
+  providers: [UserService, UserRepository],
   controllers: [UserController],
-  exports: [RoleService],
+  exports: [],
 })
 export class UsersModule {}

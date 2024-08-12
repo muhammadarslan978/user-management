@@ -1,5 +1,5 @@
 import { Document } from 'mongoose';
-import mongoose, { Schema, model } from 'mongoose';
+import { Schema, model } from 'mongoose';
 
 interface IRole extends Document {
   role_id: string;
@@ -8,12 +8,6 @@ interface IRole extends Document {
 }
 
 const RoleSchema = new Schema({
-  role_id: {
-    type: String,
-    required: true,
-    unique: true,
-    default: () => new mongoose.Types.ObjectId(),
-  },
   role_name: {
     type: String,
     required: true,

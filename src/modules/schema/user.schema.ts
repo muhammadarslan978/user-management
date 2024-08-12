@@ -18,12 +18,6 @@ interface IUser extends Document {
 }
 
 const UserSchema = new Schema({
-  user_id: {
-    type: String,
-    required: true,
-    unique: true,
-    default: () => new mongoose.Types.ObjectId(),
-  },
   email: {
     type: String,
     required: true,

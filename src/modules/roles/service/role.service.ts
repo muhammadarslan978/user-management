@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { RoleRepository } from './repo';
-import { IRole } from '../../schems/role';
+import { RoleRepository } from './role.repository';
+import { IRole } from '../../schema/role.schema';
 
 @Injectable()
 export class RoleService {

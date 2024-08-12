@@ -1,5 +1,5 @@
-import { UserSchema } from './user';
-import { RoleSchema } from './role';
+import { UserSchema } from './user.schema';
+import { RoleSchema } from './role.schema';
 
 export default [
   { name: 'UserModel', schema: UserSchema },
