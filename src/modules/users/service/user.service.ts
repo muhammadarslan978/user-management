@@ -4,6 +4,7 @@ import { LoginUserDto } from '../dto/login.dto';
 import { IUser } from '../../schema/user.schema';
 import { UserRepository } from './user.repository';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ISigninPayload } from '../interface/user.interface';
 
 @Injectable()
 export class UserService {
@@ -38,7 +39,7 @@ export class UserService {
     }
   }
 
-  async signin(data: LoginUserDto): Promise<IUser> {
+  async signin(data: LoginUserDto): Promise<any> {
     const user = await this.userRepository.findByEmail(data.email);
 
     if (!user) {
@@ -55,7 +56,15 @@ export class UserService {
 
     delete user.password;
 
-    return user;
+    const payload: ISigninPayload = {
+      _id: user._id.toString(),
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      roles: user.roles,
+    };
+
+    return payload;
   }
 
   private async hashPassword(password: string): Promise<string> {
