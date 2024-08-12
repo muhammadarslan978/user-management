@@ -1,4 +1,3 @@
-// src/auth/dto/create-user.dto.ts
 import {
   IsEmail,
   IsEnum,
@@ -7,6 +6,8 @@ import {
   IsArray,
   IsNumber,
   MinLength,
+  ArrayNotEmpty,
+  ArrayMinSize,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -23,8 +24,11 @@ export class CreateUserDto {
   @IsString()
   last_name: string;
 
-  @IsEnum(['User', 'Trainer', 'Coach', 'Admin'])
-  role: 'User' | 'Trainer' | 'Coach' | 'Admin';
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayMinSize(1)
+  @IsEnum(['User', 'Trainer', 'Coach', 'Admin'], { each: true })
+  roles: ('User' | 'Trainer' | 'Coach' | 'Admin')[];
 
   @IsOptional()
   @IsNumber()

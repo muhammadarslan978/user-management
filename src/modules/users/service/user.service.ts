@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { LoginUserDto } from '../dto/login.dto';
 import { IUser } from '../../schema/user.schema';
@@ -7,81 +7,83 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
+
   constructor(
-    private userRepository: UserRepository,
-    private eventEmitter: EventEmitter2,
+    private readonly userRepository: UserRepository,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async createUser(data: CreateUserDto): Promise<IUser> {
-    try {
-      let user = await this.userRepository.findByEmail(data.email);
+    const existingUser = await this.userRepository.findByEmail(data.email);
 
-      if (user) {
-        throw new HttpException(
-          'User already exists with this email',
-          HttpStatus.CONFLICT,
-        );
-      }
-
-      const [hashPassword] = await this.eventEmitter.emitAsync(
-        'utils.hashPassword',
-        {
-          password: data.password,
-        },
+    if (existingUser) {
+      this.logger.warn(
+        `User registration attempt with existing email: ${data.email}`,
       );
+      throw new HttpException(
+        'User already exists with this email',
+        HttpStatus.CONFLICT,
+      );
+    }
 
-      data.password = hashPassword;
-      user = await this.userRepository.createUser(data);
+    try {
+      const hashedPassword = await this.hashPassword(data.password);
+      data.password = hashedPassword;
 
+      const user = await this.userRepository.createUser(data);
       return user;
     } catch (err) {
-      console.error('Error in createUser:', err);
-
-      if (err instanceof HttpException) {
-        throw err;
-      }
-
-      throw new HttpException(
-        'Internal Server Error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      this.handleServiceError('createUser', err);
     }
   }
 
   async signin(data: LoginUserDto): Promise<IUser> {
-    try {
-      const user = await this.userRepository.findByEmail(data.email);
+    const user = await this.userRepository.findByEmail(data.email);
 
-      if (!user) {
-        throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
-      }
-
-      const [isMatched] = await this.eventEmitter.emitAsync(
-        'utils.comparePassword',
-        {
-          password: data.password,
-          hash: user.password,
-        },
-      );
-
-      if (!isMatched) {
-        throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
-      }
-
-      delete user.password;
-
-      return user;
-    } catch (err) {
-      console.error('Error in signin:', err);
-
-      if (err instanceof HttpException) {
-        throw err;
-      }
-
-      throw new HttpException(
-        'Internal Server Error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+    if (!user) {
+      this.logger.warn(`Failed signin attempt with email: ${data.email}`);
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     }
+
+    const isMatched = await this.comparePassword(data.password, user.password);
+
+    if (!isMatched) {
+      this.logger.warn(`Failed password match for email: ${data.email}`);
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
+
+    delete user.password;
+
+    return user;
+  }
+
+  private async hashPassword(password: string): Promise<string> {
+    const [hashedPassword] = await this.eventEmitter.emitAsync(
+      'utils.hashPassword',
+      { password },
+    );
+    return hashedPassword;
+  }
+
+  private async comparePassword(
+    password: string,
+    hash: string,
+  ): Promise<boolean> {
+    const [isMatched] = await this.eventEmitter.emitAsync(
+      'utils.comparePassword',
+      { password, hash },
+    );
+    return isMatched;
+  }
+
+  private handleServiceError(method: string, err: any): never {
+    this.logger.error(`Error in ${method}:`, err.stack || err);
+
+    if (err instanceof HttpException) {
+      throw err;
+    }
+
+    throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }

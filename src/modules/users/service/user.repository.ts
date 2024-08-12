@@ -9,7 +9,8 @@ export class UserRepository {
   constructor(@InjectModel('UserModel') private userModel: Model<IUser>) {}
 
   async findByEmail(email: string): Promise<IUser> {
-    return this.userModel.findOne({ email }).lean();
+    const user = this.userModel.findOne({ email }).lean();
+    return user;
   }
 
   async createUser(data: CreateUserDto): Promise<IUser> {

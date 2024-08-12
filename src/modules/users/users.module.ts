@@ -5,10 +5,9 @@ import { UserController } from './controller/user.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import forFeatureDb from '../schema/featureDb';
 import { UserRepository } from './service/user.repository';
-import { RolesModule } from '../roles/roles.module';
 
 @Module({
-  imports: [MongooseModule.forFeature(forFeatureDb), RolesModule],
+  imports: [MongooseModule.forFeature(forFeatureDb)],
   providers: [UserService, UserRepository],
   controllers: [UserController],
   exports: [],

@@ -1,12 +1,10 @@
 import { Document } from 'mongoose';
-import mongoose, { Schema, model } from 'mongoose';
+import { Schema, model } from 'mongoose';
 
-// Define the TypeScript interface for the User document
 interface IUser extends Document {
-  user_id: string;
   email: string;
   password?: string;
-  role: string;
+  roles: string[];
   first_name: string;
   last_name: string;
   age?: number;
@@ -27,8 +25,8 @@ const UserSchema = new Schema({
     type: String,
     required: true,
   },
-  role: {
-    type: String,
+  roles: {
+    type: [String],
     enum: ['User', 'Trainer', 'Coach', 'Admin'],
     required: true,
   },
