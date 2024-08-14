@@ -14,7 +14,7 @@ import { AuthModule } from './modules/auth/auth.module';
       isGlobal: true,
     }),
     EventEmitterModule.forRoot(),
-    MongooseModule.forRoot(process.env.MONGO_CONNECTION_STRING),
+    MongooseModule.forRoot(process.env.MONGO_URI),
     UsersModule,
     AuthModule,
   ],
