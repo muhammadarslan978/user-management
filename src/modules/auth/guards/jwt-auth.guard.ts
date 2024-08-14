@@ -20,9 +20,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
       const user = await this.authService.verifyToken(token);
 
-      if (!user.verified) {
-        throw new UnauthorizedException('User not verified');
-      }
+      // if (!user.verified) {
+      //   throw new UnauthorizedException('User not verified');
+      // }
       request.user = user;
       return true;
     } catch (err) {

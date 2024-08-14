@@ -5,6 +5,7 @@ import { IUser } from '../../schema/user.schema';
 import { UserRepository } from './user.repository';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ISigninPayload } from '../interface/user.interface';
+import { UpdateUserDto } from '../dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -16,7 +17,9 @@ export class UserService {
   ) {}
 
   async createUser(data: CreateUserDto): Promise<IUser> {
-    const existingUser = await this.userRepository.findByEmail(data.email);
+    const existingUser = await this.userRepository.findOne({
+      email: data.email,
+    });
 
     if (existingUser) {
       this.logger.warn(
@@ -32,7 +35,7 @@ export class UserService {
       const hashedPassword = await this.hashPassword(data.password);
       data.password = hashedPassword;
 
-      const user = await this.userRepository.createUser(data);
+      const user = await this.userRepository.create(data);
       return user;
     } catch (err) {
       this.handleServiceError('createUser', err);
@@ -40,7 +43,7 @@ export class UserService {
   }
 
   async signin(data: LoginUserDto): Promise<any> {
-    const user = await this.userRepository.findByEmail(data.email);
+    const user = await this.userRepository.findOne({ email: data.email });
 
     if (!user) {
       this.logger.warn(`Failed signin attempt with email: ${data.email}`);
@@ -65,6 +68,70 @@ export class UserService {
     };
 
     return payload;
+  }
+
+  async getUserById(id: string, populateFields?: string[]): Promise<IUser> {
+    const user = await this.userRepository.findById(id, populateFields);
+
+    if (!user) {
+      this.logger.warn(`User not found with ID: ${id}`);
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    delete user.password;
+
+    return user;
+  }
+
+  async updateUser(
+    id: string,
+    data: UpdateUserDto,
+    populateFields?: string[],
+  ): Promise<IUser> {
+    if (data.password && data.current_password) {
+      const user = await this.userRepository.findById(id);
+
+      if (!user) {
+        this.logger.warn(`User not found with ID: ${id}`);
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      const isMatched = await this.comparePassword(
+        data.current_password,
+        user.password,
+      );
+      if (!isMatched) {
+        this.logger.warn(`Failed password match for user ID: ${id}`);
+        throw new HttpException(
+          'Current password is incorrect',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      data.password = await this.hashPassword(data.password);
+    } else if (data.password && !data.current_password) {
+      throw new HttpException(
+        'Current password is required to change password',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const updatedUser = await this.userRepository.updateById(
+      id,
+      data,
+      populateFields,
+    );
+
+    if (!updatedUser) {
+      this.logger.warn(`Failed to update user with ID: ${id}`);
+      throw new HttpException(
+        'Failed to update user',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    delete updatedUser.password;
+    return updatedUser;
   }
 
   private async hashPassword(password: string): Promise<string> {
