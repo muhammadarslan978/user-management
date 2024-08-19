@@ -1,20 +1,14 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { CreateUserDto } from '../dto/create-user.dto';
-import { LoginUserDto } from '../dto/login.dto';
 import { IUser } from '../../schema/user.schema';
 import { UserRepository } from './user.repository';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ISigninPayload } from '../interface/user.interface';
-import { UpdateUserDto } from '../dto/update-user.dto';
+import { IPlainUser, WhereUser } from '../interface/user.interface';
+import { CreateUserDto } from '../dto/create-user.dto';
 
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
 
-  constructor(
-    private readonly userRepository: UserRepository,
-    private readonly eventEmitter: EventEmitter2,
-  ) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
   async createUser(data: CreateUserDto): Promise<IUser> {
     const existingUser = await this.userRepository.findOne({
@@ -32,9 +26,6 @@ export class UserService {
     }
 
     try {
-      const hashedPassword = await this.hashPassword(data.password);
-      data.password = hashedPassword;
-
       const user = await this.userRepository.create(data);
       return user;
     } catch (err) {
@@ -42,115 +33,44 @@ export class UserService {
     }
   }
 
-  async signin(data: LoginUserDto): Promise<any> {
-    const user = await this.userRepository.findOne({ email: data.email });
+  async getUser(where: WhereUser): Promise<IUser> {
+    try {
+      const user = await this.userRepository.findOne(where);
 
-    if (!user) {
-      this.logger.warn(`Failed signin attempt with email: ${data.email}`);
-      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+      if (!user) {
+        throw new HttpException('User Not found', HttpStatus.NOT_FOUND);
+      }
+      return user;
+    } catch (err) {
+      this.handleServiceError('getUser', err);
     }
-
-    const isMatched = await this.comparePassword(data.password, user.password);
-
-    if (!isMatched) {
-      this.logger.warn(`Failed password match for email: ${data.email}`);
-      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
-    }
-
-    delete user.password;
-
-    const payload: ISigninPayload = {
-      _id: user._id.toString(),
-      first_name: user.first_name,
-      last_name: user.last_name,
-      email: user.email,
-      roles: user.roles,
-    };
-
-    return payload;
   }
 
   async getUserById(id: string, populateFields?: string[]): Promise<IUser> {
-    const user = await this.userRepository.findById(id, populateFields);
-
-    if (!user) {
-      this.logger.warn(`User not found with ID: ${id}`);
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
-
-    delete user.password;
-
-    return user;
-  }
-
-  async updateUser(
-    id: string,
-    data: UpdateUserDto,
-    populateFields?: string[],
-  ): Promise<IUser> {
-    if (data.password && data.current_password) {
-      const user = await this.userRepository.findById(id);
+    try {
+      const user = await this.userRepository.findById(id, populateFields);
 
       if (!user) {
         this.logger.warn(`User not found with ID: ${id}`);
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
 
-      const isMatched = await this.comparePassword(
-        data.current_password,
-        user.password,
-      );
-      if (!isMatched) {
-        this.logger.warn(`Failed password match for user ID: ${id}`);
-        throw new HttpException(
-          'Current password is incorrect',
-          HttpStatus.UNAUTHORIZED,
-        );
-      }
+      delete user.password;
 
-      data.password = await this.hashPassword(data.password);
-    } else if (data.password && !data.current_password) {
-      throw new HttpException(
-        'Current password is required to change password',
-        HttpStatus.BAD_REQUEST,
-      );
+      return user;
+    } catch (err) {
+      this.handleServiceError('getUserById', err);
     }
-
-    const updatedUser = await this.userRepository.updateById(
-      id,
-      data,
-      populateFields,
-    );
-
-    if (!updatedUser) {
-      this.logger.warn(`Failed to update user with ID: ${id}`);
-      throw new HttpException(
-        'Failed to update user',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-
-    delete updatedUser.password;
-    return updatedUser;
   }
 
-  private async hashPassword(password: string): Promise<string> {
-    const [hashedPassword] = await this.eventEmitter.emitAsync(
-      'utils.hashPassword',
-      { password },
-    );
-    return hashedPassword;
-  }
-
-  private async comparePassword(
-    password: string,
-    hash: string,
-  ): Promise<boolean> {
-    const [isMatched] = await this.eventEmitter.emitAsync(
-      'utils.comparePassword',
-      { password, hash },
-    );
-    return isMatched;
+  transformToPlainUser(user: IUser): IPlainUser {
+    return {
+      _id: user._id.toString(),
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      roles: user.roles,
+    };
   }
 
   private handleServiceError(method: string, err: any): never {

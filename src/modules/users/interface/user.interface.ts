@@ -1,4 +1,4 @@
-export interface ISigninPayload {
+export interface IPlainUser {
   _id: string;
   first_name: string;
   last_name: string;
@@ -7,6 +7,13 @@ export interface ISigninPayload {
 }
 
 export interface ISigninResponse {
-  user: ISigninPayload;
+  user: IPlainUser;
   token: string;
+}
+
+export interface WhereUser {
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  age?: number;
 }

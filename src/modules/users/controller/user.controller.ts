@@ -1,44 +1,52 @@
 import {
   Body,
   Controller,
-  ForbiddenException,
   Get,
+  HttpException,
+  HttpStatus,
   Post,
-  Put,
   Req,
   UseGuards,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
-import { CreateUserDto } from '../dto/create-user.dto';
 import { IUser } from '../../schema/user.schema';
-import { LoginUserDto } from '../dto/login.dto';
 import { UserService } from '../service/user.service';
 import { ISigninResponse } from '../interface/user.interface';
 import { AuthService } from 'src/modules/auth/services/auth.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { UpdateUserDto } from '../dto/update-user.dto';
+
+import { PasswordService } from '../../auth/services/password.service';
+import { CreateUserDto } from '../dto/create-user.dto';
+import { LoginUserDto } from '../dto/login.dto';
 
 @Controller('users')
 export class UserController {
   constructor(
     private readonly userService: UserService,
     private readonly authService: AuthService,
+    private readonly passwordService: PasswordService,
   ) {}
 
   @Post('register')
-  @UsePipes(new ValidationPipe())
-  async register(@Body() body: CreateUserDto): Promise<IUser> {
-    // Need to send welcome email to user
-    return this.userService.createUser(body);
+  async registerUser(@Body() createUserDto: CreateUserDto): Promise<any> {
+    createUserDto.password = await this.passwordService.hash(
+      createUserDto.password,
+    );
+    return await this.userService.createUser(createUserDto);
   }
 
   @Post('signin')
-  @UsePipes(new ValidationPipe())
-  async signin(@Body() body: LoginUserDto): Promise<ISigninResponse> {
-    const user = await this.userService.signin(body);
-    const token = await this.authService.generateToken(user);
-    return { user, token };
+  async signin(@Body() loginDto: LoginUserDto): Promise<ISigninResponse> {
+    const user = await this.userService.getUser({ email: loginDto.email });
+    const comparePassword = await this.authService.comparePasswords(
+      loginDto.password,
+      user.password,
+    );
+    if (!comparePassword) {
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
+    const plainUser = this.userService.transformToPlainUser(user);
+    const token = await this.authService.generateToken(plainUser);
+    return { user: plainUser, token };
   }
 
   @Get('profile')
@@ -48,18 +56,8 @@ export class UserController {
     return this.userService.getUserById(_id);
   }
 
-  @Put('/:id')
-  @UseGuards(JwtAuthGuard)
-  @UsePipes(new ValidationPipe())
-  async update(@Body() body: UpdateUserDto, @Req() req: any): Promise<IUser> {
-    const { id } = req.params;
-
-    if (req.user._id !== id && !req.user.roles.includes('Admin')) {
-      throw new ForbiddenException(
-        'You are not authorized to update this user.',
-      );
-    }
-
-    return await this.userService.updateUser(id, body);
+  @Post('test')
+  async test(@Body() body: any): Promise<any> {
+    return body;
   }
 }

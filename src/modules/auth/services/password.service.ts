@@ -5,7 +5,7 @@ import { IPasswordService } from '../interfaces/ipassword-service.interface';
 @Injectable()
 export class PasswordService implements IPasswordService {
   async hash(password: string): Promise<string> {
-    return bcrypt.hash(password, 10);
+    return bcrypt.hash(password, 8);
   }
 
   async compare(
