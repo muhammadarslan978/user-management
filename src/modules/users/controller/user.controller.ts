@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   HttpException,
   HttpStatus,
   Post,
+  Put,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -17,6 +19,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PasswordService } from '../../auth/services/password.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { LoginUserDto } from '../dto/login.dto';
+import { UpdateUserDto } from '../dto/update-user.dto';
 
 @Controller('users')
 export class UserController {
@@ -54,6 +57,23 @@ export class UserController {
   async profile(@Req() req: any): Promise<IUser> {
     const { _id } = req.user;
     return this.userService.getUserById(_id);
+  }
+
+  @Put('/:id')
+  @UseGuards(JwtAuthGuard)
+  async updateUser(
+    @Body() updateUserDto: UpdateUserDto,
+    @Req() req: any,
+  ): Promise<any> {
+    const { id } = req.params;
+
+    if (req.user._id !== id && !req.user.roles.includes('Admin')) {
+      throw new ForbiddenException(
+        'You are not authorized to update this user.',
+      );
+    }
+
+    return await this.userService.updateUser(id, updateUserDto);
   }
 
   @Post('test')

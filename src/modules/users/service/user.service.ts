@@ -3,6 +3,7 @@ import { IUser } from '../../schema/user.schema';
 import { UserRepository } from './user.repository';
 import { IPlainUser, WhereUser } from '../interface/user.interface';
 import { CreateUserDto } from '../dto/create-user.dto';
+import { UpdateUserDto } from '../dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -60,6 +61,22 @@ export class UserService {
       return user;
     } catch (err) {
       this.handleServiceError('getUserById', err);
+    }
+  }
+
+  async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<IUser> {
+    try {
+      const user = await this.userRepository.findById(id);
+      if (!user) {
+        throw new HttpException('User Not found', HttpStatus.NOT_FOUND);
+      }
+      const updatedUser = await this.userRepository.updateById(
+        id,
+        updateUserDto,
+      );
+      return updatedUser;
+    } catch (err) {
+      this.handleServiceError('updateUser', err);
     }
   }
 
