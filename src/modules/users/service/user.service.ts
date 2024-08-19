@@ -1,7 +1,11 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { IUser } from '../../schema/user.schema';
 import { UserRepository } from './user.repository';
-import { IPlainUser, WhereUser } from '../interface/user.interface';
+import {
+  IPlainUser,
+  SuccessMessage,
+  WhereUser,
+} from '../interface/user.interface';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 
@@ -80,6 +84,19 @@ export class UserService {
     }
   }
 
+  async changePassword(
+    id: string,
+    newPassword: string,
+  ): Promise<SuccessMessage> {
+    try {
+      const data = { password: newPassword };
+      await this.userRepository.updateById(id, data);
+      return { message: 'Password changed successfullyu' };
+    } catch (err) {
+      this.handleServiceError('changePassword', err);
+    }
+  }
+
   transformToPlainUser(user: IUser): IPlainUser {
     return {
       _id: user._id.toString(),
@@ -87,6 +104,8 @@ export class UserService {
       last_name: user.last_name,
       email: user.email,
       roles: user.roles,
+      fitness_goals: user.fitness_goals,
+      preferences: user.preferences,
     };
   }
 
