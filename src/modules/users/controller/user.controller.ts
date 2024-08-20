@@ -31,7 +31,7 @@ export class UserController {
   ) {}
 
   @Post('register')
-  async registerUser(@Body() createUserDto: CreateUserDto): Promise<any> {
+  async registerUser(@Body() createUserDto: CreateUserDto): Promise<IUser> {
     createUserDto.password = await this.passwordService.hash(
       createUserDto.password,
     );
