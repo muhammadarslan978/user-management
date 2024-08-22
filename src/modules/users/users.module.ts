@@ -4,7 +4,7 @@ import { UserService } from './service/user.service';
 import { UserController } from './controller/user.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import forFeatureDb from '../schema/featureDb';
-import { UserRepository } from './service/user.repository';
+import { UserRepository } from './repository/user.repository';
 import { AuthModule } from '../auth/auth.module';
 import { AuthService } from '../auth/services/auth.service';
 import { PasswordService } from '../auth/services/password.service';

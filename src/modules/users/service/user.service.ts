@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { IUser } from '../../schema/user.schema';
-import { UserRepository } from './user.repository';
+import { UserRepository } from '../repository/user.repository';
 import {
   IPlainUser,
   SuccessMessage,
