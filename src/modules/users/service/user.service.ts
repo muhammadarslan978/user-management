@@ -97,6 +97,26 @@ export class UserService {
     }
   }
 
+  async addWorkoutsToUser(
+    userId: string,
+    workoutIds: string[],
+  ): Promise<IUser> {
+    try {
+      const user = await this.userRepository.findById(userId);
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      user.selected_workouts = Array.from(
+        new Set([...(user.selected_workouts || []), ...workoutIds]),
+      );
+
+      return this.userRepository.updateById(userId, user);
+    } catch (err) {
+      this.handleServiceError('addWorkoutsToUser', err);
+    }
+  }
+
   transformToPlainUser(user: IUser): IPlainUser {
     return {
       _id: user._id.toString(),

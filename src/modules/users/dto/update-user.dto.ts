@@ -35,6 +35,11 @@ export class UpdateUserDto {
   fitness_goals?: string[];
 
   @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  selected_workouts?: string[];
+
+  @IsOptional()
   @IsObject()
   preferences?: Record<string, any>;
 }

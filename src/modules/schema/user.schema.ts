@@ -11,6 +11,7 @@ interface IUser extends Document {
   gender?: string;
   fitness_goals?: string[];
   preferences?: Record<string, any>;
+  selected_workouts?: string[];
   created_at: Date;
   updated_at: Date;
 }
@@ -50,6 +51,9 @@ const UserSchema = new Schema({
   },
   preferences: {
     type: Schema.Types.Mixed,
+  },
+  selected_workouts: {
+    type: [String],
   },
   created_at: {
     type: Date,

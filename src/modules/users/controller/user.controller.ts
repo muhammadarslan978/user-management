@@ -5,6 +5,7 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  Param,
   Post,
   Put,
   Req,
@@ -109,6 +110,25 @@ export class UserController {
       id,
       changePasswordDto.new_password,
     );
+  }
+
+  @Put('/:id/workouts')
+  @UseGuards(JwtAuthGuard)
+  async updateUserWorkouts(
+    @Param('id') userId: string,
+    @Body() updateData: { workoutIds: string[] },
+    @Req() req: any,
+  ): Promise<IUser> {
+    if (req.user._id !== userId && !req.user.roles.includes('Admin')) {
+      throw new ForbiddenException(
+        'You are not authorized to update this user.',
+      );
+    }
+    const updatedUser = await this.userService.addWorkoutsToUser(
+      userId,
+      updateData.workoutIds,
+    );
+    return updatedUser;
   }
 
   @Post('test')
