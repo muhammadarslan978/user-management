@@ -126,6 +126,7 @@ export class UserService {
       roles: user.roles,
       fitness_goals: user.fitness_goals,
       preferences: user.preferences,
+      selected_workouts: user.selected_workouts,
     };
   }
 

@@ -6,6 +6,7 @@ export interface IPlainUser {
   roles: string[];
   fitness_goals?: string[];
   preferences?: Record<string, any>;
+  selected_workouts: string[];
 }
 
 export interface ISigninResponse {
