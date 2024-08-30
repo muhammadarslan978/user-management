@@ -131,6 +131,22 @@ export class UserController {
     return updatedUser;
   }
 
+  @Put('/:id/meal-plan')
+  @UseGuards(JwtAuthGuard)
+  async selectMealPlan(
+    @Param('id') userId: string,
+    @Body() selectMealPlanDto: { mealplan_id: string; title: string },
+    @Req() req: any,
+  ): Promise<any> {
+    if (req.user._id !== userId && !req.user.roles.includes('Admin')) {
+      throw new ForbiddenException(
+        'You are not authorized to meal-plan for this user.',
+      );
+    }
+
+    return selectMealPlanDto;
+  }
+
   @Post('test')
   async test(@Body() body: any): Promise<any> {
     return body;
