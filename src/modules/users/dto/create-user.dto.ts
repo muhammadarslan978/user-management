@@ -27,8 +27,8 @@ export class CreateUserDto {
   @IsArray()
   @ArrayNotEmpty()
   @ArrayMinSize(1)
-  @IsEnum(['User', 'Trainer', 'Coach', 'Admin'], { each: true })
-  roles: ('User' | 'Trainer' | 'Coach' | 'Admin')[];
+  @IsEnum(['User', 'Trainer', 'GUEST', 'Admin'], { each: true })
+  roles: ('User' | 'Trainer' | 'GUEST' | 'Admin')[];
 
   @IsOptional()
   @IsNumber()

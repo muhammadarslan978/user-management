@@ -6,7 +6,23 @@ import {
   IsEnum,
   IsNumber,
   IsObject,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+
+class MealPlanDto {
+  @IsOptional()
+  @IsString()
+  mealplan_id?: string;
+
+  @IsOptional()
+  @IsString()
+  title?: string;
+
+  @IsOptional()
+  @Type(() => Date)
+  start_date?: Date;
+}
 
 export class UpdateUserDto {
   @IsOptional()
@@ -42,4 +58,19 @@ export class UpdateUserDto {
   @IsOptional()
   @IsObject()
   preferences?: Record<string, any>;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => MealPlanDto)
+  selected_meal_plan?: MealPlanDto;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  dietary_restrictions?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  food_logs?: string[];
 }

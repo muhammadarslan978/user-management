@@ -4,6 +4,6 @@ export const PASSWORD_SERVICE = 'PASSWORD_SERVICE';
 export enum UserRole {
   ADMIN = 'Admin',
   TRAINER = 'Trainer',
-  GUEST = 'Coach',
+  GUEST = 'GUEST',
   USER = 'User',
 }
